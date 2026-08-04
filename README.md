@@ -21,7 +21,7 @@ The following steps are required:
 
 ## Hardware Requirements
 
-**Raspberry Pi 3 Model A+** — A [Raspberry Pi 3 Model A+](https://www.adafruit.com/product/4027) is required.
+**Raspberry Pi 3 Model A+** — A [Raspberry Pi 3 Model A+](https://www.adafruit.com/product/4027) is recommended because it is affordable and more than powerful enough for this program.
 
 **5V Power Supply** — Use a [5V Micro-USB Power Supply](https://www.amazon.com/dp/B07CVH21NC/). The Pi 3 A+ uses a micro-USB power connector, not the USB-C connector found on later Raspberry Pi models.
 
