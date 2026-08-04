@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonos Album Art Display</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0;
+         background: #eef1f7; color: #1c1c1e; }
+  header { background: linear-gradient(135deg, #4338ca 0%, #0a84ff 100%);
+           padding: 22px 16px; text-align: center; color: #fff;
+           box-shadow: 0 2px 8px rgba(20,40,120,.25); }
+  h1 { margin: 0; font-size: 21px; letter-spacing: .01em; }
+  #sub { color: rgba(255,255,255,.8); font-size: 14px; margin-top: 5px; }
+  main { padding: 16px; max-width: 480px; margin: 0 auto; }
+  h2 { font-size: 13px; color: #4338ca; text-transform: uppercase;
+       letter-spacing: .06em; margin: 18px 4px 8px; font-weight: 700; }
+  #zones { background: #fff; border-radius: 14px; overflow: hidden;
+           box-shadow: 0 2px 6px rgba(30,40,90,.08); }
+  .zone { display: flex; align-items: center; justify-content: space-between;
+          gap: 12px; padding: 13px 16px; border-bottom: 1px solid #f0f0f4;
+          border-left: 3px solid transparent; cursor: pointer;
+          transition: background .15s; }
+  .zone:last-child { border-bottom: none; }
+  .zone:active { background: #f2f6ff; }
+  .zone.sel { background: #eef4ff; border-left-color: #0a84ff; }
+  .zone .left { min-width: 0; }
+  .zone .name { font-size: 16px; }
+  .zone.sel .name { font-weight: 600; color: #0a84ff; }
+  .zone .now { color: #8e8e93; font-size: 13px; margin-top: 2px;
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .zone .now.playing { color: #4338ca; }
+  .zone .check { color: #0a84ff; font-size: 18px; flex: none; }
+  .empty { padding: 16px; color: #999; text-align: center; font-size: 14px; }
+  button { font-size: 16px; font-family: inherit; border: none;
+           border-radius: 12px; padding: 13px; cursor: pointer; width: 100%;
+           transition: opacity .15s; }
+  button:active { opacity: .8; }
+  #refresh { background: #e2e6f0; color: #1c1c1e; margin-top: 8px; }
+  #msg { text-align: center; color: #666; font-size: 14px;
+         min-height: 20px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sonos Album Art Display</h1>
+  <div id="sub">Choose the zone to display</div>
+</header>
+<main>
+  <h2>Sonos zones</h2>
+  <div id="zones"><div class="empty">Looking for zones&hellip;</div></div>
+  <button id="refresh">Refresh</button>
+  <div id="msg"></div>
+</main>
+<script>
+let zones = [];
+let busy = false;
+
+function show(m) {
+  document.getElementById('msg').textContent = m;
+}
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function render() {
+  const box = document.getElementById('zones');
+  box.innerHTML = '';
+  if (zones.length === 0) {
+    box.innerHTML = '<div class="empty">No Sonos zones found &mdash; ' +
+                    'try Refresh</div>';
+    return;
+  }
+  zones.forEach(z => {
+    const row = document.createElement('div');
+    row.className = 'zone' + (z.current ? ' sel' : '');
+    const left = document.createElement('div');
+    left.className = 'left';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = z.name;
+    left.append(name);
+    const now = document.createElement('div');
+    now.className = 'now' + (z.now ? ' playing' : '');
+    now.textContent = z.now ? '♪ ' + z.now : 'Idle';
+    left.append(now);
+    row.append(left);
+    if (z.current) {
+      const check = document.createElement('span');
+      check.className = 'check';
+      check.textContent = '✓';
+      row.append(check);
+    }
+    row.onclick = () => pick(z.name);
+    box.append(row);
+  });
+}
+
+async function load() {
+  if (busy) return;
+  try {
+    const d = await api('/api/zones');
+    zones = d.zones;
+    render();
+  } catch (e) {
+    show('Could not reach the album art display');
+  }
+}
+
+async function pick(name) {
+  if (busy) return;
+  busy = true;
+  show('Switching to “' + name + '”…');
+  try {
+    await api('/api/zone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    zones.forEach(z => { z.current = (z.name === name); });
+    render();
+    show('Now showing “' + name + '”');
+  } catch (e) {
+    show('Could not switch zones — try again');
+  }
+  busy = false;
+}
+
+document.getElementById('refresh').onclick = () => { show(''); load(); };
+
+load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>
