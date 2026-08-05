@@ -9,6 +9,12 @@ No AI, no wake word, no API keys — everything is read directly from your Sonos
 
 ---
 
+## How It Works
+
+Sonos Album Art Display talks to your Sonos system using [SoCo](https://github.com/SoCo/SoCo), a Python library that controls Sonos speakers the same way the official Sonos app does — over your local network, with no cloud service or Sonos account involved. SoCo finds your speakers via UPnP discovery on the LAN, then issues direct requests to the speaker for the currently playing track, album art URL, transport state (playing/paused/stopped), and volume, and sends transport commands (play, pause, skip, volume changes) back to it the same way. Because everything happens over your own Wi-Fi network, the display only works when the Raspberry Pi and your Sonos speakers are on the same network, and it stops updating if that speaker becomes unreachable (see **Troubleshooting**).
+
+---
+
 ## How to Run Sonos Album Art Display on a Raspberry Pi 3 A+
 
 The following steps are required:
@@ -169,6 +175,8 @@ The display will join the new network and the temporary hotspot will disappear.
 
 From any device on the same Wi-Fi network, open `http://<your-pi-hostname>.local:8080/` in a browser (the exact address is written to the log file at startup). This page lists every Sonos zone on your network along with what each is currently playing. Tap a zone to switch the display to it — your choice is saved and will still be selected the next time the program starts.
 
+> **Tip:** To make this page easier to reach, save it to your iPhone's home screen: open `http://<your-pi-hostname>.local:8080/` in Safari, tap the **Share** button, scroll down the screen and then tap **Add to Home Screen**, then tap **Add**. It will thereafter appear as an icon on your iPhone's home screen that you can tap directly, without needing to open Safari or type the address each time.
+
 ---
 
 ## Running Sonos Album Art Display Automatically at Startup (Optional)
@@ -259,4 +267,3 @@ Confirm your phone/computer is on the same Wi-Fi network as the Pi, and that the
 
 **Sonos Album Art Display does not launch at startup (if you have set it to do so).**
 Confirm the autostart file exists: `ls ~/.config/autostart/sonos-album-art.desktop`. To check whether the script is currently running, enter `pgrep -a python3` in a terminal.
-
