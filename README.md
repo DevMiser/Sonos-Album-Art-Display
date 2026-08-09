@@ -155,11 +155,19 @@ Whatever is playing on the configured Sonos zone fills the left square of the sc
 
 Touch the screen at any time — whether it's showing album art, the idle message, or is fully dark — to bring up the transport controls: **previous track**, **pause/resume**, **next track**, and a sliding **volume** control for the applicable Sonos zone. The controls fade away 5 seconds after your last touch. Touching a dark screen wakes it and shows the controls immediately, so you can start playback right away.
 
+### Adjusting Brightness
+
+The display starts at maximum brightness every time the program launches. If your panel has a physical brightness button, you can use it at any time to lower the brightness to your preference — the program detects the change and remembers it, so the backlight returns to that same level (rather than resetting to maximum) each time it wakes back up, such as when playback resumes after a pause. To go back to maximum brightness, either use the button again or restart the program, since it always starts at max on launch.
+
 ### Wi-Fi Setup
 
 This check runs only once, right when the program starts. If the Pi isn't online at startup and the network it was previously using can no longer be detected at all (for example, after moving the Pi to a new location), it broadcasts its own open Wi-Fi network named **AlbumArtDisplay-Setup** and shows join instructions on the screen. If the previously-used network is still detectable but just hasn't connected yet (for example, a router that's mid-reboot right as the Pi boots up), the program waits quietly instead of showing setup.
 
-Once the program reaches a normal online state, it stops checking Wi-Fi entirely for the rest of that run — if the connection drops later during ongoing operation, the display does not react to it and relies on the Raspberry Pi's own networking to reconnect automatically once the network is back, exactly as it would for any device on your network. If you need to move the Pi to a new Wi-Fi network, unplug it, relocate it, power it back on and run the program again — the one-time setup check runs again on that fresh start.
+Once the program reaches a normal online state, this startup check is done for the rest of that run — a later disconnect never brings the setup hotspot back, and the display doesn't react to it visually. Instead, a quiet background watchdog takes over: if the Pi is ever fully disconnected from your network for more than 10 minutes (NetworkManager's own reconnection isn't always reliable), the program automatically power-cycles the Wi-Fi radio to help it reassociate, repeating every 10 minutes if it's still down. No hotspot, no on-screen message — it just tries to quietly get itself back online. If you need to move the Pi to a new Wi-Fi network, unplug it, relocate it, power it back on and run the program again — the one-time setup check runs again on that fresh start.
+
+**Last-resort reboot.** On some Raspberry Pi 3-series boards, the onboard Wi-Fi chip's firmware can occasionally wedge into a state that a radio power-cycle alone can't clear — only a full reboot resets it properly. If the Pi is still fully offline after 30 minutes of nudging, the program will automatically reboot to fully reset the Wi-Fi hardware, provided you've set up autostart (see below) so the program comes back up on its own — this is skipped otherwise, since a reboot without autostart would just leave the display off with nothing to bring it back. To avoid a reboot loop if the underlying problem persists, at most 3 automatic reboots happen per 24 hours. This feature is controlled by the `REBOOT_ESCALATION_ENABLED` constant (see **Configuration Reference**) and can be turned off entirely by setting it to `False`.
+
+> **Tip:** If you find the Pi's Wi-Fi drops out repeatedly, run `vcgencmd get_throttled` on the Pi. Anything other than `0x0` means it has logged an undervoltage event — a marginal power supply is a common cause of exactly this kind of Wi-Fi instability on Pi 3-series boards, and no software fix can fully compensate for inadequate power.
 
 To provision a new network:
 
@@ -206,6 +214,8 @@ Press **Ctrl + X**, then **Y**, then **Enter** to save. The display will now lau
 
 > **Note:** If the cursor is showing on the display after using autostart, gently tap a finger on the touchscreen and the cursor will disappear.
 
+> **Note:** Setting up autostart is also a prerequisite for the automatic Wi-Fi-recovery reboot described in **Wi-Fi Setup** — without it, that feature is skipped, since a reboot wouldn't bring the display back on its own. The automatic reboot also relies on the default `pi` user's passwordless `sudo` access (the standard configuration on Raspberry Pi OS); if you've changed that, the reboot will silently fail to run.
+
 ---
 
 ## Configuration Reference
@@ -224,6 +234,10 @@ The following constants near the top of `Sonos_Album_Art.py` can be adjusted to 
 | `UNDETECTED_GRACE_SECONDS` | `90` seconds | How long a previously-known network must be undetectable in a scan before the setup hotspot appears |
 | `STUCK_BACKSTOP_SECONDS` | `3600` seconds | Safety-net timeout if a known network stays visible but never actually connects (e.g. a changed password) |
 | `HOTSPOT_RETRY_INTERVAL` | `300` seconds | While the setup hotspot is up, how often it briefly steps aside to retest the known network |
+| `NUDGE_DELAY_SECONDS` | `600` seconds | After the startup check completes, how long the Pi must stay fully offline before the background watchdog power-cycles the Wi-Fi radio (repeats if still down) |
+| `REBOOT_ESCALATION_ENABLED` | `True` | Whether the program can automatically reboot the Pi as a last resort if the Wi-Fi radio nudge alone doesn't restore connectivity. Set to `False` to disable entirely. |
+| `REBOOT_ESCALATION_SECONDS` | `1800` seconds | How long the Pi must stay fully offline before escalating from a radio nudge to a full reboot |
+| `MAX_AUTO_REBOOTS_PER_DAY` | `3` | Safety cap on automatic reboots per 24 hours, to avoid a reboot loop if the underlying problem persists |
 | `PIXEL_ASPECTS` | `{(800, 480): 91/85}` | Per-resolution correction so album art renders square on displays with non-square pixels (already set for the Hosyond 800x480 panel) |
 
 ---
@@ -232,11 +246,12 @@ The following constants near the top of `Sonos_Album_Art.py` can be adjusted to 
 
 ```
 SonosAlbumArt/
-├── Sonos_Album_Art.py       # Main program
-├── album_art_setup.html     # Wi-Fi provisioning page, served during setup
-├── album_art_zones.html     # Zone-switcher page, served during normal operation
-├── .sonos_album_art.json    # Saved zone choice (created automatically, in your home folder)
-└── sonos_album_art.log      # Log file (created automatically, in your home folder)
+├── Sonos_Album_Art.py            # Main program
+├── album_art_setup.html          # Wi-Fi provisioning page, served during setup
+├── album_art_zones.html          # Zone-switcher page, served during normal operation
+├── .sonos_album_art.json         # Saved zone choice (created automatically, in your home folder)
+├── .sonos_album_art_reboots.json # Automatic-reboot history, for the daily cap (created automatically, in your home folder)
+└── sonos_album_art.log           # Log file (created automatically, in your home folder)
 ```
 
 ---
@@ -260,7 +275,10 @@ Confirm the DSI ribbon cable is fully seated at both ends with the gold contacts
 The controls only appear when you touch the screen — they are not shown continuously. Tap anywhere on the screen and they should pop up within a moment.
 
 **The Wi-Fi setup hotspot doesn't appear after losing Wi-Fi.**
-This is expected — the Wi-Fi check only runs once at startup. Once the program has reached a normal online state, it never checks Wi-Fi again for the rest of that run, so a later disconnect never brings up the hotspot; the Pi's own networking reconnects on its own once the network is back. If you need to reprovision, unplug the Pi and power it back on so the startup check runs again.
+This is expected — the setup hotspot only ever appears during the one-time startup check. A later disconnect never brings it back. Instead, a background watchdog periodically power-cycles the Wi-Fi radio if the Pi stays fully offline for more than 10 minutes, helping it reassociate on its own. Check `~/sonos_album_art.log` for a "Wi-Fi appears down..." or "Nudging Wi-Fi radio..." line to confirm this is happening. If you need to reprovision to a different network, unplug the Pi, move it, and power it back on so the startup check runs again.
+
+**Wi-Fi stays down for a very long time, and the radio nudge doesn't seem to help.**
+After 30 minutes of continued disconnection, the program will automatically reboot to fully reset the Wi-Fi hardware — check the log for a "rebooting to fully reset..." line. This requires autostart to be set up (otherwise it's skipped, logged as "skipping automatic reboot," since a reboot wouldn't bring the display back on its own); see **Running Sonos Album Art Display Automatically at Startup**. It's also capped at 3 automatic reboots per 24 hours, so a persistent problem won't cause endless rebooting — check the log for "daily auto-reboot limit... reached" if it seems to have stopped trying. If reboots keep being needed, run `vcgencmd get_throttled` on the Pi to check for undervoltage — a marginal power supply is a common cause on Pi 3-series boards. You can disable this feature entirely by setting `REBOOT_ESCALATION_ENABLED = False` in `Sonos_Album_Art.py`.
 
 **The zone-switcher page shows no zones, or "Could not reach the display."**
 Confirm your phone/computer is on the same Wi-Fi network as the Pi, and that the hostname in the URL matches the Pi's actual hostname. Confirm Sonos speakers are powered on and reachable from the Pi's network.
