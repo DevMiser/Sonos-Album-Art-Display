@@ -258,9 +258,9 @@ SonosAlbumArt/
 
 If you would like to use the optional 3D-printed frame, follow these instructions.
 
-3D print the frame, the legs, and four of the tabs [Figure 1]. The STLs for these 3D parts are on this GitHub repository. The recommended setting for slicing the STLs are 0.20mm quality with 30% infill. None of the parts require supports while printing. 
+3D print the frame, the feet, and four of the tabs [Figure 1]. The STLs for these 3D parts are on this GitHub repository. The recommended setting for slicing the STLs are 0.20mm quality with 30% infill. Only the feet require supports while printing. 
 
-Mount the Raspberry Pi to the back of the Hosyond 7-inch DSI Touchscreen display per the display's instructions. Insert the display in the frame and use four Phillips flat head screws to screw on the tabs to secure the display [Figure 2]. Tighten the screws only enough to hold the tabs in place. Overtightening them will squeeze the display and can cause damage or distortions. Insert the legs into the frame.
+Mount the Raspberry Pi to the back of the Hosyond 7-inch DSI Touchscreen display per the display's instructions. Insert the display in the frame and use four Phillips flat head screws to screw on the tabs to secure the display [Figure 2]. Tighten the screws only enough to hold the tabs in place. Overtightening them will squeeze the display and can cause damage or distortions. Insert the tabs on the feet into holes in the frame.
 
 ---
 
