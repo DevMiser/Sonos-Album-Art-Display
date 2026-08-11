@@ -3,7 +3,7 @@
 
 Sonos Album Art Display shows the album art from the currently playing track on your Sonos music system. It runs on a Raspberry Pi 3 Model A+ (or more current version) with an attached 7-inch DSI touchscreen. The album art fills the left square of the screen, with the song, album, and artist shown on the right. The display's backlight turns fully off when nothing is playing and wakes automatically when music starts.
 
-Touch the screen at any time to bring up on-screen transport controls — previous track, pause/resume, next track, and a sliding volume control — which fade away a few seconds after your last touch. If the Pi cannot automatically connect to a Wi-Fi network at startup, it broadcasts its own temporary Wi-Fi hotspot so you can connect it to the Wi-Fi network from your phone. A small built-in web page also lets you switch which Sonos zone is shown from any device on your network.
+Touch the screen at any time to bring up on-screen transport controls (previous track, pause/resume, next track, and a sliding volume control) which fade away a few seconds after your last touch. If the Pi cannot automatically connect to a Wi-Fi network at startup, it broadcasts its own temporary Wi-Fi hotspot so you can connect it to the Wi-Fi network from your phone. A small built-in web page also lets you switch which Sonos zone is shown from any device on your network.
 
 No AI, no wake word, no API keys — everything is read directly from your Sonos speaker over your local network via the SoCo library.
 
@@ -11,7 +11,7 @@ No AI, no wake word, no API keys — everything is read directly from your Sonos
 
 ## How It Works
 
-Sonos Album Art Display talks to your Sonos system using [SoCo](https://github.com/SoCo/SoCo), a Python library that controls Sonos speakers the same way the official Sonos app does — over your local network, with no cloud service or Sonos account involved. SoCo finds your speakers via UPnP discovery on the LAN, then issues direct requests to the speaker for the currently playing track, album art URL, transport state (playing/paused/stopped), and volume, and sends transport commands (play, pause, skip, volume changes) back to it the same way. Because everything happens over your own Wi-Fi network, the display only works when the Raspberry Pi and your Sonos speakers are on the same network, and it stops updating if that speaker becomes unreachable (see **Troubleshooting**).
+Sonos Album Art Display talks to your Sonos system using [SoCo](https://github.com/SoCo/SoCo), a Python library that controls Sonos speakers the same way the official Sonos app does — over your local network, with no cloud service or Sonos account involved. SoCo finds your speakers via UPnP discovery on the LAN, then issues direct requests to the speaker for the currently playing track, album art URL, transport state (playing/paused/stopped), and volume, and sends transport commands (play, pause, skip, volume changes) back to it the same way. Because everything happens over your own Wi-Fi network, the display only works when the Raspberry Pi and your Sonos speakers are connected to the same Wi-Fi network, and it stops updating if that speaker becomes unreachable (see **Troubleshooting**).
 
 ---
 
@@ -35,7 +35,7 @@ The following steps are required:
 
 > **Note:** This software is resolution-independent — fonts and on-screen layout automatically scale to whatever screen resolution is detected at startup, so a different display should generally work without any code changes. If you use a different screen, follow that display's own manufacturer instructions for connecting it to the Raspberry Pi rather than the Hosyond-specific steps below. The one Hosyond-specific detail in the code is `PIXEL_ASPECTS`, a small correction for this particular panel's non-square pixels (see **Configuration Reference**) — if your alternate display also has non-square pixels and album art looks stretched, you would add a similar entry for its resolution.
 
-**MicroSD Card** — A 16 GB or larger card rated **C10** and **A1** from a reputable brand is recommended. Purchase from a reputable retailer to avoid counterfeit cards. I used a [Ultra Plus](https://www.amazon.com/Adapter-Memory-Tablet-Console-TF162/dp/B0CYT2DVSQ/).
+**MicroSD Card** — A 16 GB or larger card rated **C10** and **A1** (or better) from a reputable brand is recommended. Purchase from a reputable retailer to avoid counterfeit cards. I used a [Ultra Plus](https://www.amazon.com/Adapter-Memory-Tablet-Console-TF162/dp/B0CYT2DVSQ/).
 
 **Phillips Flat Head Screws (Optional)** — You will need four [Phillips flat head screws](https://boltdepot.com/Product-Details?product=6854) if you decide to use the optional 3D printed frame. The ones used elsewhere in this project are 2.5 x 0.45 x 8mm.
 
@@ -70,7 +70,7 @@ Carefully open the DSI connector latch on your Raspberry Pi board and insert the
 
 ### 3. Reorient the Display Screen (Optional)
 
-If you are going to put the display in the 3D-printed or other frame and want to have the power port at a particular side of the frame, you may need to reorient the axes of the display screen. To do so, follow the display rotation instructions on the manufacturer's site: https://hosyond.com/.
+If you are going to put the display in the 3D-printed or other frame and want to have the power port at a particular side of the frame, you may need to reorient the axes of the display screen. To do so, follow the display rotation instructions available in the tutorial on the manufacturer's site: https://hosyond.com/.
 
 Then reboot:
 
@@ -90,7 +90,7 @@ sudo apt install python3-pygame python3-pil network-manager
 
 If asked whether you want to continue, enter **Y** and press Enter.
 
-> **Note:** Raspberry Pi OS images typically already include `python3-pygame`, `python3-pil`, and NetworkManager (`nmcli`) — the command above is a safety net in case any are missing. Unlike an HDMI display, this DSI touchscreen exposes its backlight directly through the Linux `sysfs` interface, so **`ddcutil` is not needed** for this project on this display — if you see a log line mentioning a different screen-off method being probed, that's just the fallback chain being checked, not an error.
+> **Note:** Raspberry Pi OS images typically already include `python3-pygame`, `python3-pil`, and NetworkManager (`nmcli`) — the command above is a safety net in case any are missing. Unlike an HDMI display, the Hosyond 7-inch DSI Touchscreen display exposes its backlight directly through the Linux `sysfs` interface, so **`ddcutil` is not needed** for this project on this display — if you see a log line mentioning a different screen-off method being probed, that's just the fallback chain being checked, not an error.
 
 ### 5. Clone the Repository
 
@@ -114,15 +114,10 @@ cd /home/pi/SonosAlbumArt
 
 Confirm all three application files are present: `Sonos_Album_Art.py`, `album_art_setup.html`, and `album_art_zones.html`.
 
-### 6. Install the One Missing Python Package
+### 6. Install the SoCo Python Package
 
-`pygame` and `Pillow` are already provided by the OS packages installed in step 4. The only package this project needs that isn't already on the system is `soco`, the library used to talk to Sonos speakers. No virtual environment or requirements file is needed for a single package — install it directly:
+The only package this project needs that isn't already on the system is `soco`, the library used to talk to Sonos speakers. No virtual environment or requirements file is needed for a single package — install it directly:
 
-```
-sudo apt install python3-soco
-```
-
-If that package isn't available in your repo mirror, install it with pip instead:
 
 ```
 sudo pip3 install --break-system-packages soco
@@ -141,7 +136,9 @@ cd /home/pi/SonosAlbumArt
 python3 Sonos_Album_Art.py
 ```
 
-Wait for album art to appear, or the idle screen if nothing is currently playing.
+Wait for album art to appear if music is currently playing on your Sonos system on the configured zone, or for the idle screen if nothing is currently playing or if a zone has not yet been selected (see Switching Sonos Zones below).
+
+> **Note:** The program doesn't write a log file — running it this way, from a terminal, is also how you see live diagnostic output (Wi-Fi status, Sonos connection issues, etc.) if you ever need to troubleshoot something. Nothing is printed when it's launched silently via autostart, since there's no terminal attached.
 
 ---
 
@@ -157,19 +154,19 @@ Touch the screen at any time — whether it's showing album art, the idle messag
 
 ### Adjusting Brightness
 
-The display starts at maximum brightness every time the program launches. If your panel has a physical brightness button, you can use it at any time to lower the brightness to your preference — the program detects the change and remembers it, so the backlight returns to that same level (rather than resetting to maximum) each time it wakes back up, such as when playback resumes after a pause. To go back to maximum brightness, either use the button again or restart the program, since it always starts at max on launch.
+The display starts at maximum brightness every time the program launches. If your panel has a physical brightness button (like the Hosyond 7-inch DSI Touchscreen does), you can use it at any time to lower the brightness to your preference — the program detects the change and remembers it, so the backlight returns to that same level (rather than resetting to maximum) each time it wakes back up, such as when playback resumes after a pause. To go back to maximum brightness, either use the button again or restart the program, since it always starts at max on launch. The optional printed frame obstructs easy access to the brightness button, so select your preferred brightness before mounting the display in the frame.
 
 ### Wi-Fi Setup
 
-This check runs only once, right when the program starts. If the Pi isn't online at startup and the network it was previously using can no longer be detected at all (for example, after moving the Pi to a new location), it broadcasts its own open Wi-Fi network named **AlbumArtDisplay-Setup** and shows join instructions on the screen. If the previously-used network is still detectable but just hasn't connected yet (for example, a router that's mid-reboot right as the Pi boots up), the program waits quietly instead of showing setup.
+This check runs only once, right when the program starts. If the Pi isn't online at startup and the Wi-Fi network it was previously using can no longer be detected (for example, after moving the Pi to a new location), it broadcasts its own open Wi-Fi network named **AlbumArtDisplay-Setup** and shows join instructions on the screen. If the previously-used network is still detectable but just hasn't connected yet (for example, a router that's mid-reboot right as the Pi boots up), the program waits quietly instead of showing setup.
 
-Once the program reaches a normal online state, this startup check is done for the rest of that run — a later disconnect never brings the setup hotspot back, and the display doesn't react to it visually. Instead, a quiet background watchdog takes over: if the Pi is ever fully disconnected from your network for more than 10 minutes (NetworkManager's own reconnection isn't always reliable), the program automatically power-cycles the Wi-Fi radio to help it reassociate, repeating every 10 minutes if it's still down. No hotspot, no on-screen message — it just tries to quietly get itself back online. If you need to move the Pi to a new Wi-Fi network, unplug it, relocate it, power it back on and run the program again — the one-time setup check runs again on that fresh start.
+Once the program reaches a normal online state, this startup check will not run again unless and until the program is restarted. So a later disconnect never brings the setup hotspot back, and the display doesn't react to it visually. Instead, a quiet background watchdog takes over. If the Pi is disconnected from your Wi-Fi network for more than 10 minutes, the program automatically power-cycles the Wi-Fi radio to help it reconnect. If you need to move the Pi to a new Wi-Fi network, unplug it, relocate it, power it back on and run the program again. The one-time setup check will run again on that fresh start.
 
-**Last-resort reboot.** On some Raspberry Pi 3-series boards, the onboard Wi-Fi chip's firmware can occasionally wedge into a state that a radio power-cycle alone can't clear — only a full reboot resets it properly. If the Pi is still fully offline after 30 minutes of nudging, the program will automatically reboot to fully reset the Wi-Fi hardware, provided you've set up autostart (see below) so the program comes back up on its own — this is skipped otherwise, since a reboot without autostart would just leave the display off with nothing to bring it back. To avoid a reboot loop if the underlying problem persists, at most 3 automatic reboots happen per 24 hours. This feature is controlled by the `REBOOT_ESCALATION_ENABLED` constant (see **Configuration Reference**) and can be turned off entirely by setting it to `False`.
+**Last-resort reboot.** On some Raspberry Pi 3-series boards, the onboard Wi-Fi chip's firmware can occasionally wedge into a state that a radio power-cycle alone can't clear — only a full reboot resets it properly. If the Pi is still fully offline after 30 minutes of nudging, the program will automatically reboot to fully reset the Wi-Fi hardware, provided you've set up autostart (see below) so the program comes back up on its own. This feature is controlled by the `REBOOT_ESCALATION_ENABLED` constant (see **Configuration Reference**) and can be turned off entirely by setting it to `False`.
 
-> **Tip:** If you find the Pi's Wi-Fi drops out repeatedly, run `vcgencmd get_throttled` on the Pi. Anything other than `0x0` means it has logged an undervoltage event — a marginal power supply is a common cause of exactly this kind of Wi-Fi instability on Pi 3-series boards, and no software fix can fully compensate for inadequate power.
+> **Tip:** If you find the Pi's Wi-Fi drops out repeatedly, run `vcgencmd get_throttled` on the Pi. Anything other than `0x0` means it has logged an undervoltage event. A marginal power supply is a common cause of this kind of Wi-Fi instability on Pi 3-series boards. Replace the power supply if this happens.
 
-To provision a new network:
+To provision a new Wi-Fi network:
 
 1. On your phone, join the **AlbumArtDisplay-Setup** Wi-Fi network.
 2. Open `http://10.42.0.1:8080/` in Safari or your browser.
@@ -181,7 +178,7 @@ The display will join the new network and the temporary hotspot will disappear.
 
 ### Switching Sonos Zones
 
-From any device on the same Wi-Fi network, open `http://<your-pi-hostname>.local:8080/` in a browser (the exact address is written to the log file at startup). This page lists every Sonos zone on your network along with what each is currently playing. Tap a zone to switch the display to it — your choice is saved and will still be selected the next time the program starts.
+From any device on the same Wi-Fi network, open `http://<your-pi-hostname>.local:8080/` in a browser — substitute your Pi's actual hostname (run it manually in a terminal to see the exact address printed at startup, if you're not sure). This page lists every Sonos zone on your network along with what each is currently playing. Tap a zone to switch the display to it — your choice is saved and will still be selected the next time the program starts.
 
 > **Tip:** To make this page easier to reach, save it to your iPhone's home screen: open `http://<your-pi-hostname>.local:8080/` in Safari, tap the **Share** button, scroll down the screen and then tap **Add to Home Screen**, then tap **Add**. It will thereafter appear as an icon on your iPhone's home screen that you can tap directly, without needing to open Safari or type the address each time.
 
@@ -214,7 +211,7 @@ Press **Ctrl + X**, then **Y**, then **Enter** to save. The display will now lau
 
 > **Note:** If the cursor is showing on the display after using autostart, gently tap a finger on the touchscreen and the cursor will disappear.
 
-> **Note:** Setting up autostart is also a prerequisite for the automatic Wi-Fi-recovery reboot described in **Wi-Fi Setup** — without it, that feature is skipped, since a reboot wouldn't bring the display back on its own. The automatic reboot also relies on the default `pi` user's passwordless `sudo` access (the standard configuration on Raspberry Pi OS); if you've changed that, the reboot will silently fail to run.
+> **Note:** Setting up autostart is also a prerequisite for the automatic Wi-Fi-recovery reboot described in **Wi-Fi Setup**. Without it, that feature is skipped, since a reboot wouldn't bring the display back on its own. The automatic reboot also relies on the default `pi` user's passwordless `sudo` access (the standard configuration on Raspberry Pi OS); if you've changed that, the reboot will silently fail to run.
 
 ---
 
@@ -238,6 +235,8 @@ The following constants near the top of `Sonos_Album_Art.py` can be adjusted to 
 | `REBOOT_ESCALATION_ENABLED` | `True` | Whether the program can automatically reboot the Pi as a last resort if the Wi-Fi radio nudge alone doesn't restore connectivity. Set to `False` to disable entirely. |
 | `REBOOT_ESCALATION_SECONDS` | `1800` seconds | How long the Pi must stay fully offline before escalating from a radio nudge to a full reboot |
 | `MAX_AUTO_REBOOTS_PER_DAY` | `3` | Safety cap on automatic reboots per 24 hours, to avoid a reboot loop if the underlying problem persists |
+| `CRASH_LOOP_MAX` | `5` | Max times the program will auto-restart itself after a crash within `CRASH_LOOP_WINDOW_SECONDS`, before giving up |
+| `CRASH_LOOP_WINDOW_SECONDS` | `600` seconds | Time window the crash-loop cap is measured against |
 | `PIXEL_ASPECTS` | `{(800, 480): 91/85}` | Per-resolution correction so album art renders square on displays with non-square pixels (already set for the Hosyond 800x480 panel) |
 
 ---
@@ -250,19 +249,18 @@ SonosAlbumArt/
 ├── album_art_setup.html          # Wi-Fi provisioning page, served during setup
 ├── album_art_zones.html          # Zone-switcher page, served during normal operation
 ├── .sonos_album_art.json         # Saved zone choice (created automatically, in your home folder)
-├── .sonos_album_art_reboots.json # Automatic-reboot history, for the daily cap (created automatically, in your home folder)
-└── sonos_album_art.log           # Log file (created automatically, in your home folder)
+└── .sonos_album_art_reboots.json # Automatic-reboot history, for the daily cap (created automatically, in your home folder)
 ```
 
 ---
 
-## Printing and Assembling the Enclosure
+## Printing and Assembling the Frame
 
-> **Draft:** the STL files and exact assembly steps for this frame are still being finalized. The outline below follows the same overall approach as this project's earlier enclosure design, with the speakerphone cradle removed since this project has no microphone/speaker hardware to house — update the specifics once the final print files are ready.
+If you would like to use the optional 3D-printed frame, follow these instructions.
 
-3D print the frame and tabs. The STLs for these 3D parts are on the same repository as the software. The recommended setting for slicing the STLs is 0.20mm quality with 30% infill.
+3D print the frame, the legs, and four of the tabs [Figure 1]. The STLs for these 3D parts are on this GitHub repository. The recommended setting for slicing the STLs are 0.20mm quality with 30% infill. None of the parts require supports while printing. 
 
-Mount the Raspberry Pi to the back of the display per Hosyond's instructions. Insert the display into the frame and secure it with the tab screws, tightened only enough to hold the tabs in place — overtightening will squeeze the display and cause damage or distortions.
+Mount the Raspberry Pi to the back of the Hosyond 7-inch DSI Touchscreen display per the display's instructions. Insert the display in the frame and use four Phillips pan head screws to screw on the tabs to secure the display [Figure 2]. Tighten the screws only enough to hold the tabs in place. Overtightening them will squeeze the display and can cause damage or distortions. Insert the legs into the frame.
 
 ---
 
@@ -275,10 +273,10 @@ Confirm the DSI ribbon cable is fully seated at both ends with the gold contacts
 The controls only appear when you touch the screen — they are not shown continuously. Tap anywhere on the screen and they should pop up within a moment.
 
 **The Wi-Fi setup hotspot doesn't appear after losing Wi-Fi.**
-This is expected — the setup hotspot only ever appears during the one-time startup check. A later disconnect never brings it back. Instead, a background watchdog periodically power-cycles the Wi-Fi radio if the Pi stays fully offline for more than 10 minutes, helping it reassociate on its own. Check `~/sonos_album_art.log` for a "Wi-Fi appears down..." or "Nudging Wi-Fi radio..." line to confirm this is happening. If you need to reprovision to a different network, unplug the Pi, move it, and power it back on so the startup check runs again.
+This is expected — the setup hotspot only ever appears during the one-time startup check. A later disconnect never brings it back. Instead, a background watchdog periodically power-cycles the Wi-Fi radio if the Pi stays fully offline for more than 10 minutes, helping it reconnect on its own. If you need to reprovision to a different network, unplug the Pi, move it, and power it back on so the startup check runs again.
 
 **Wi-Fi stays down for a very long time, and the radio nudge doesn't seem to help.**
-After 30 minutes of continued disconnection, the program will automatically reboot to fully reset the Wi-Fi hardware — check the log for a "rebooting to fully reset..." line. This requires autostart to be set up (otherwise it's skipped, logged as "skipping automatic reboot," since a reboot wouldn't bring the display back on its own); see **Running Sonos Album Art Display Automatically at Startup**. It's also capped at 3 automatic reboots per 24 hours, so a persistent problem won't cause endless rebooting — check the log for "daily auto-reboot limit... reached" if it seems to have stopped trying. If reboots keep being needed, run `vcgencmd get_throttled` on the Pi to check for undervoltage — a marginal power supply is a common cause on Pi 3-series boards. You can disable this feature entirely by setting `REBOOT_ESCALATION_ENABLED = False` in `Sonos_Album_Art.py`.
+After 30 minutes of continued disconnection, the program will automatically reboot to fully reset the Wi-Fi hardware. This requires autostart to be set up; see **Running Sonos Album Art Display Automatically at Startup**. It's also capped at 3 automatic reboots per 24 hours, so a persistent problem won't cause endless rebooting. If reboots keep being needed, run `vcgencmd get_throttled` on the Pi to check for undervoltage — a marginal power supply is a common cause on Pi 3-series boards. You can disable this feature entirely by setting `REBOOT_ESCALATION_ENABLED = False` in `Sonos_Album_Art.py`.
 
 **The zone-switcher page shows no zones, or "Could not reach the display."**
 Confirm your phone/computer is on the same Wi-Fi network as the Pi, and that the hostname in the URL matches the Pi's actual hostname. Confirm Sonos speakers are powered on and reachable from the Pi's network.
