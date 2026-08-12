@@ -14,6 +14,8 @@ No AI, no wake word, no API keys — everything is read directly from your Sonos
 
 ---
 
+[![Demo](./SonosAlbumArt.gif)](https://youtu.be/v5pvJ8TYyRI)
+
 ## How It Works
 
 Sonos Album Art Display talks to your Sonos system using [SoCo](https://github.com/SoCo/SoCo), a Python library that controls Sonos speakers the same way the official Sonos app does — over your local network, with no cloud service or Sonos account involved. SoCo finds your speakers via UPnP discovery on the LAN, then issues direct requests to the speaker for the currently playing track, album art URL, transport state (playing/paused/stopped), and volume, and sends transport commands (play, pause, skip, volume changes) back to it the same way. Because everything happens over your own Wi-Fi network, the display only works when the Raspberry Pi and your Sonos speakers are connected to the same Wi-Fi network, and it stops updating if that speaker becomes unreachable (see **Troubleshooting**).
