@@ -14,7 +14,7 @@ No AI, no wake word, no API keys — everything is read directly from your Sonos
 
 ---
 
-[![Demo](./SonosAlbumArt.gif)](https://youtu.be/v5pvJ8TYyRI)
+[![Demo](./SonosAlbumArtDisplay.gif)](https://youtu.be/v5pvJ8TYyRI)
 
 ## How It Works
 
