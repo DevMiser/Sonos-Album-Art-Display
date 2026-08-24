@@ -132,6 +132,46 @@ sudo pip3 install --break-system-packages soco
 
 > **Note:** `--break-system-packages` is required on Bookworm and later because Debian blocks plain `pip install` outside a virtual environment by default (PEP 668). This is safe here because `soco` has no dependencies that conflict with the system-installed `pygame`/`Pillow`.
 
+### 7. Turn Off the Onboard LEDs (Optional)
+
+The Raspberry Pi has two onboard LEDs that some people find distracting in a dark room: a **red "PWR" LED** (power indicator, lit solid) and a **green "ACT" LED** (SD card activity, flickers). To turn them off permanently, edit the boot config:
+
+```
+sudo nano /boot/firmware/config.txt
+```
+
+Add these lines to turn off the red PWR LED:
+
+```
+dtparam=pwr_led_trigger=none
+dtparam=pwr_led_activelow=off
+```
+
+To also turn off the green ACT LED, add:
+
+```
+dtparam=act_led_trigger=none
+dtparam=act_led_activelow=off
+```
+
+Press **Ctrl + X**, then **Y**, then **Enter** to save, then reboot:
+
+```
+sudo reboot
+```
+
+> **Note:** Disabling the PWR LED's trigger also silences its usual undervoltage-blink warning. If you ever suspect a power issue, run `vcgencmd get_throttled` instead — anything other than `0x0` indicates an undervoltage event, regardless of whether the LED is disabled.
+
+> **Tip:** To test this without editing the config file (resets on next reboot), first check the exact LED names on your system — they occasionally differ (`PWR`/`ACT` vs. `led0`/`led1`):
+> ```
+> ls /sys/class/leds/
+> ```
+> Then, substituting the actual name shown:
+> ```
+> echo none | sudo tee /sys/class/leds/PWR/trigger
+> echo 0 | sudo tee /sys/class/leds/PWR/brightness
+> ```
+
 ---
 
 ## Run the Program
