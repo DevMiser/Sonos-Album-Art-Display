@@ -134,24 +134,22 @@ sudo pip3 install --break-system-packages soco
 
 ### 7. Turn Off the Onboard LEDs (Optional)
 
-The Raspberry Pi has two onboard LEDs that some people find distracting in a dark room: a **red "PWR" LED** (power indicator, lit solid) and a **green "ACT" LED** (SD card activity, flickers). To turn them off permanently, edit the boot config:
+The Raspberry Pi has two onboard LEDs that some people find distracting in a dark room: a **red "PWR" LED** (power indicator, lit solid) and a **green "ACT" LED** (SD card activity, flickers). The most reliable way to turn them off permanently is a udev rule that switches them off the moment the kernel creates the LED devices at boot:
 
 ```
-sudo nano /boot/firmware/config.txt
+sudo nano /etc/udev/rules.d/99-led-off.rules
 ```
 
-Add these lines to turn off the red PWR LED:
+Add this line to turn off the red PWR LED:
 
 ```
-dtparam=pwr_led_trigger=none
-dtparam=pwr_led_activelow=off
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="PWR", ATTR{trigger}="none", ATTR{brightness}="0"
 ```
 
-To also turn off the green ACT LED, add:
+To also turn off the green ACT LED, add a second line to the same file:
 
 ```
-dtparam=act_led_trigger=none
-dtparam=act_led_activelow=off
+ACTION=="add", SUBSYSTEM=="leds", KERNEL=="ACT", ATTR{trigger}="none", ATTR{brightness}="0"
 ```
 
 Press **Ctrl + X**, then **Y**, then **Enter** to save, then reboot:
@@ -160,9 +158,11 @@ Press **Ctrl + X**, then **Y**, then **Enter** to save, then reboot:
 sudo reboot
 ```
 
+> **Note:** The `dtparam=pwr_led_trigger=none` / `dtparam=act_led_trigger=none` lines sometimes suggested for `/boot/firmware/config.txt` do **not** reliably turn the LEDs off — the correct `activelow` polarity varies by board revision, so this can silently fail to work. The udev rule above avoids that entirely by writing directly to the LED's own sysfs attributes, which is unambiguous regardless of board wiring.
+
 > **Note:** Disabling the PWR LED's trigger also silences its usual undervoltage-blink warning. If you ever suspect a power issue, run `vcgencmd get_throttled` instead — anything other than `0x0` indicates an undervoltage event, regardless of whether the LED is disabled.
 
-> **Tip:** To test this without editing the config file (resets on next reboot), first check the exact LED names on your system — they occasionally differ (`PWR`/`ACT` vs. `led0`/`led1`):
+> **Tip:** To test this immediately without rebooting, first check the exact LED names on your system — they occasionally differ (`PWR`/`ACT` vs. `led0`/`led1`):
 > ```
 > ls /sys/class/leds/
 > ```
