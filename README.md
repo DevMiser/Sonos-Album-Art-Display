@@ -105,17 +105,17 @@ Open a terminal and enter the following commands:
 
 ```
 cd /home/pi
-git clone https://github.com/yourusername/Sonos_Album_Art.git
+git clone https://github.com/DevMiser/Sonos-Album-Art-Display.git
 cd Sonos_Album_Art
 ```
 
-> Replace `https://github.com/yourusername/Sonos_Album_Art.git` with the actual repository URL. If your clone creates a differently named folder, rename it or adjust the paths in the next steps accordingly. These instructions assume the files live at `/home/pi/SonosAlbumArt/`.
+> If your clone creates a differently named folder, rename it or adjust the paths in the next steps accordingly. These instructions assume the files live at `/home/pi/SonosAlbumArt/`.
 
 Move or copy the files into place:
 
 ```
 mkdir -p /home/pi/SonosAlbumArt
-cp -r /home/pi/Sonos_Album_Art/* /home/pi/SonosAlbumArt/
+cp -r /home/pi/Sonos-Album-Art-Display/* /home/pi/SonosAlbumArt/
 cd /home/pi/SonosAlbumArt
 ```
 
