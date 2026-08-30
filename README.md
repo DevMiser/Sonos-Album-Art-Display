@@ -109,8 +109,6 @@ git clone https://github.com/DevMiser/Sonos-Album-Art-Display.git
 cd Sonos_Album_Art
 ```
 
-> If your clone creates a differently named folder, rename it or adjust the paths in the next steps accordingly. These instructions assume the files live at `/home/pi/SonosAlbumArt/`.
-
 Move or copy the files into place:
 
 ```
