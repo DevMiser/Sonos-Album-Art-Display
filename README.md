@@ -1,11 +1,6 @@
 # Sonos Album Art Display
 ### Album Art Display for Raspberry Pi 3 Model A+
 
-
-<img width="1920" height="1080" alt="f68560d8-215b-4510-ac51-7630e8042fe5" src="https://github.com/user-attachments/assets/81c52fe1-9075-4964-9d6c-1a4c52a89452" />
-
-
-
 Sonos Album Art Display shows the album art from the currently playing track on your Sonos music system. It runs on a Raspberry Pi 3 Model A+ (or more current version) with an attached 7-inch DSI touchscreen. The album art fills the left square of the screen, with the song, album, and artist shown on the right. The display's backlight turns fully off when nothing is playing and wakes automatically when music starts.
 
 Touch the screen at any time to bring up on-screen transport controls (previous track, pause/resume, next track, and a sliding volume control) which fade away a few seconds after your last touch. If the Pi cannot automatically connect to a Wi-Fi network at startup, it broadcasts its own temporary Wi-Fi hotspot so you can connect it to the Wi-Fi network from your phone. A small built-in web page also lets you switch which Sonos zone is shown from any device on your network.
@@ -13,8 +8,6 @@ Touch the screen at any time to bring up on-screen transport controls (previous 
 No AI, no wake word, no API keys — everything is read directly from your Sonos speaker over your local network via the SoCo library.
 
 ---
-
-[![Demo](SonosAlbumArtDisplay.gif)](https://youtu.be/v5pvJ8TYyRI)
 
 ## How It Works
 
@@ -71,11 +64,27 @@ sudo reboot
 
 Log back in after the reboot.
 
-### 2. Connect the Hosyond Display
+### 2. Set a Hostname (Recommended)
+
+By default, every fresh Raspberry Pi OS install uses the hostname `raspberrypi`. This project's zone-switcher web page is reached at `http://<hostname>.local:8080/`, so if you have — or ever add — another Raspberry Pi on the same network, two devices both named `raspberrypi.local` will conflict, and that address may resolve to the wrong device or fail intermittently. Giving this Pi its own distinct hostname avoids that entirely and gives you a memorable, predictable URL. This guide uses `AlbumArt` and refers to it as `albumart.local` in the examples below — if you skip this step or choose a different name, substitute your own hostname wherever you see `albumart.local`.
+
+```
+sudo raspi-config nonint do_hostname AlbumArt
+```
+
+Then reboot:
+
+```
+sudo reboot
+```
+
+After this, the zone-switcher page in this guide would be reached at `http://albumart.local:8080/`.
+
+### 3. Connect the Hosyond Display
 
 Carefully open the DSI connector latch on your Raspberry Pi board and insert the display's DSI ribbon cable, making sure the gold contacts are oriented correctly at both ends. The Hosyond panel is marketed as driver-free/plug-and-play, so no manual configuration is required.
 
-### 3. Reorient the Display Screen (Optional)
+### 4. Reorient the Display Screen (Optional)
 
 If you are going to put the display in the 3D-printed or other frame and want to have the power port at a particular side of the frame, you may need to reorient the axes of the display screen. To do so, follow the display rotation instructions available in the tutorial on the manufacturer's site: https://hosyond.com/.
 
@@ -85,7 +94,7 @@ Then reboot:
 sudo reboot
 ```
 
-### 4. Install System-Level Dependencies
+### 5. Install System-Level Dependencies
 
 Some packages must be installed at the system level via `apt`. Open a terminal and enter the following commands in order:
 
@@ -99,7 +108,7 @@ If asked whether you want to continue, enter **Y** and press Enter.
 
 > **Note:** Raspberry Pi OS images typically already include `python3-pygame`, `python3-pil`, and NetworkManager (`nmcli`) — the command above is a safety net in case any are missing. Unlike an HDMI display, the Hosyond 7-inch DSI Touchscreen display exposes its backlight directly through the Linux `sysfs` interface, so **`ddcutil` is not needed** for this project on this display — if you see a log line mentioning a different screen-off method being probed, that's just the fallback chain being checked, not an error.
 
-### 5. Clone the Repository
+### 6. Clone the Repository
 
 Open a terminal and enter the following commands:
 
@@ -119,7 +128,7 @@ cd /home/pi/SonosAlbumArt
 
 Confirm all three application files are present: `Sonos_Album_Art.py`, `album_art_setup.html`, and `album_art_zones.html`.
 
-### 6. Install the SoCo Python Package
+### 7. Install the SoCo Python Package
 
 The only package this project needs that isn't already on the system is `soco`, the library used to talk to Sonos speakers. No virtual environment or requirements file is needed for a single package — install it directly:
 
@@ -130,7 +139,7 @@ sudo pip3 install --break-system-packages soco
 
 > **Note:** `--break-system-packages` is required on Bookworm and later because Debian blocks plain `pip install` outside a virtual environment by default (PEP 668). This is safe here because `soco` has no dependencies that conflict with the system-installed `pygame`/`Pillow`.
 
-### 7. Turn Off the Onboard LEDs (Optional)
+### 8. Turn Off the Onboard LEDs (Optional)
 
 The Raspberry Pi has two onboard LEDs that some people find distracting in a dark room: a **red "PWR" LED** (power indicator, lit solid) and a **green "ACT" LED** (SD card activity, flickers). The most reliable way to turn them off permanently is a udev rule that switches them off the moment the kernel creates the LED devices at boot:
 
@@ -223,9 +232,9 @@ The display will join the new network and the temporary hotspot will disappear.
 
 ### Switching Sonos Zones
 
-From any device on the same Wi-Fi network, open `http://<your-pi-hostname>.local:8080/` in a browser — substitute your Pi's actual hostname (run it manually in a terminal to see the exact address printed at startup, if you're not sure). This page lists every Sonos zone on your network along with what each is currently playing. Tap a zone to switch the display to it — your choice is saved and will still be selected the next time the program starts.
+From any device on the same Wi-Fi network, open `http://albumart.local:8080/` in a browser (if you used a different hostname in step 2, substitute it here). This page lists every Sonos zone on your network along with what each is currently playing. Tap a zone to switch the display to it — your choice is saved and will still be selected the next time the program starts.
 
-> **Tip:** To make this page easier to reach, save it to your iPhone's home screen: open `http://<your-pi-hostname>.local:8080/` in Safari, tap the **Share** button, scroll down the screen and then tap **Add to Home Screen**, then tap **Add**. It will thereafter appear as an icon on your iPhone's home screen that you can tap directly, without needing to open Safari or type the address each time.
+> **Tip:** To make this page easier to reach, save it to your iPhone's home screen: open `http://albumart.local:8080/` in Safari, tap the **Share** button, scroll down the screen and then tap **Add to Home Screen**, then tap **Add**. It will thereafter appear as an icon on your iPhone's home screen that you can tap directly, without needing to open Safari or type the address each time.
 
 ---
 
@@ -305,7 +314,7 @@ If you would like to use the optional 3D-printed frame, follow these instruction
 
 3D print the frame, the feet, and four of the tabs. The STLs for these 3D parts are on this GitHub repository. The recommended setting for slicing the STLs are 0.20mm quality with 30% infill. Only the feet require supports while printing. 
 
-Mount the Raspberry Pi to the back of the Hosyond 7-inch DSI Touchscreen display per the display's instructions. Insert the display in the frame and use four Phillips flat head screws to screw on the tabs to secure the display. Tighten the screws only enough to hold the tabs in place. Overtightening them will squeeze the display and can cause damage or distortions. Insert the tabs on the feet into holes in the frame.
+Mount the Raspberry Pi to the back of the Hosyond 7-inch DSI Touchscreen display per the display's instructions. Insert the display in the frame and use four Phillips flat head screws to screw on the tabs to secure the display. Tighten the screws only enough to hold the tabs in place. Overtightening them will squeeze the display and can cause damage or distortions. Insert the tabs on the feet into the holes in the frame.
 
 ---
 
