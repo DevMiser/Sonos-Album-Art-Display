@@ -1,4 +1,7 @@
 # Sonos Album Art Display
+
+<img width="1920" height="1079" alt="5fa16088-c54e-4c0a-8a4f-71806400f6ed" src="https://github.com/user-attachments/assets/ba55c7b3-a1ac-4f18-a025-c7f83b9ee73b" />
+
 ### Album Art Display for Raspberry Pi 3 Model A+
 
 Sonos Album Art Display shows the album art from the currently playing track on your Sonos music system. It runs on a Raspberry Pi 3 Model A+ (or more current version) with an attached 7-inch DSI touchscreen. The album art fills the left square of the screen, with the song, album, and artist shown on the right. The display's backlight turns fully off when nothing is playing and wakes automatically when music starts.
